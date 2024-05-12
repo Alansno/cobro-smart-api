@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  username String @unique @db.VarChar(150)
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  companyData CompanyData?
+  userData UserData? 
+  role Role @relation(fields: [roleId], references: [id])
+  roleId Int
+}
+
+model CompanyData {
+  id Int @id @default(autoincrement())
+  nameCompany String @db.VarChar(100)
+  addressCompany String
+  rfc String @db.VarChar(15)
+  emailCompany String @unique
+  phoneCompany String @db.VarChar(20)
+  typeIndustry String @db.VarChar(60)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  user User @relation(fields: [userId], references: [id])
+  userId Int @unique
+  usersData UserData[]
+  clients Client[]
+  accounts Account[]
+}
+
+model UserData {
+  id Int @id @default(autoincrement())
+  nameUser String
+  emailUser String @unique
+  phoneUser String @db.VarChar(20)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  user User @relation(fields: [userId], references: [id])
+  userId Int @unique
+  company CompanyData @relation(fields: [companyId], references: [id])
+  companyId Int
+  clients Client[]
+}
+
+model Role {
+  id Int @id @default(autoincrement())
+  nameRole String @db.VarChar(50) @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  users User[]
+}
+
+model Account {
+  id Int @id @default(autoincrement())
+  nameAccount String @db.VarChar(100) @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  registrations registrationService[]
+  company CompanyData @relation(fields: [companyId], references: [id])
+  companyId Int
+}
+
+model Client {
+  id Int @id @default(autoincrement())
+  nameClient String
+  addressClient String
+  phoneClient String @db.VarChar(20)
+  emailClient String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  company CompanyData @relation(fields: [companyId], references: [id])
+  companyId Int
+  userData UserData? @relation(fields: [userId], references: [id])
+  userId Int?
+  services Service[]
+}
+
+model Service {
+  id Int @id @default(autoincrement())
+  typeDocument String @db.VarChar(50)
+  dateInvoicing DateTime @db.Date()
+  subtotalService Decimal
+  ivaService Decimal
+  totalService Decimal
+  description String @db.MediumText
+  typeService String @db.VarChar(50)
+  unitBusiness String @db.VarChar(50)
+  difference Decimal
+  status String @default("Sin pago")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  registrations registrationService[]
+  client Client @relation(fields: [clientId], references: [id])
+  clientId Int
+}
+
+model registrationService {
+  id Int @id @default(autoincrement())
+  datePayment DateTime @default(now())
+  subtotalRegis Decimal
+  ivaRegis Decimal
+  totalRegis Decimal
+  payment String @db.VarChar(50)
+  typeIncome String @db.VarChar(50)
+  wallet String
+  comments String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  nameAccount String
+  account Account @relation(fields: [nameAccount], references: [nameAccount])
+  service Service @relation(fields: [serviceId], references: [id])
+  serviceId Int
+}
